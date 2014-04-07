@@ -1,0 +1,48 @@
+#!/usr/local/bin/php -q
+<?php
+function argv2array ($argv) {
+$opts = array();
+$argv0 = array_shift($argv);
+while(count($argv)) {
+$key = array_shift($argv);
+$value = array_shift($argv);
+$opts[$key] = $value;
+}
+return $opts;
+}
+$opts = argv2array($argv);
+$userdata_file = "/var/cpanel/userdata/".$opts['user']."/".$opts['domain'];
+$contents = file_get_contents($userdata_file);
+$homedir = $opts['homedir'];
+$web_root = $homedir."/public_html/".$opts['domain'];
+$contents = str_replace("documentroot: ".$homedir."/public_html","documentroot: ".$web_root,$contents);
+file_put_contents($userdata_file,$contents);
+echo "Updated Doc root for main domain to use: ".$web_root."\n";
+echo "Updating userdata cache...\n";
+echo `/scripts/updateuserdatacache`;
+echo "Copying skelton directory...\n";
+echo `/bin/rm -vrf {$homedir}/public_html/*`;
+echo `/bin/mkdir -v {$web_root}`;
+$skel = '';
+if ($opts['owner'] == 'root') {
+$skel = "/root/";
+} else {
+$skel = "/home*/".$opts['owner'];
+}
+$user = $opts['user'];
+$files = $skel."/cpanel3-skel/public_html/*";
+echo `/bin/cp -Rv {$files} {$web_root}`;
+echo `/bin/chown -v {$user}. {$web_root}`;
+echo `/bin/chown -Rv {$user}. {$web_root}/*`;
+echo `/bin/touch {$homedir}/public_html/.htaccess`;
+echo `/bin/touch {$user} /bin/touch {$web_root}/.htaccess`;
+echo `/bin/chown -v {$user}. {$homedir}/public_html/.htaccess`;
+echo `/bin/chown -v {$user}. {$web_root}/.htaccess`;
+echo `/bin/chmod -v +x {$homedir}/public_html`;
+echo `/bin/chgrp -v nobody {$homedir}/public_html`;
+echo `/bin/chgrp -v nobody {$web_root}`;
+echo "Rebuilding httpd.conf...\n";
+echo `/scripts/rebuildhttpdconf`;
+echo "Restarting Apache...\n";
+echo `/etc/init.d/httpd restart`;
+echo "Done!\n";
