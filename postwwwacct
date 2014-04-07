@@ -1,14 +1,14 @@
 #!/usr/local/bin/php -q
 <?php
 function argv2array ($argv) {
-$opts = array();
-$argv0 = array_shift($argv);
-while(count($argv)) {
-$key = array_shift($argv);
-$value = array_shift($argv);
-$opts[$key] = $value;
-}
-return $opts;
+  $opts = array();
+  $argv0 = array_shift($argv);
+  while(count($argv)) {
+    $key = array_shift($argv);
+    $value = array_shift($argv);
+    $opts[$key] = $value;
+  }
+  return $opts;
 }
 $opts = argv2array($argv);
 $userdata_file = "/var/cpanel/userdata/".$opts['user']."/".$opts['domain'];
@@ -25,9 +25,9 @@ echo `/bin/rm -vrf {$homedir}/public_html/*`;
 echo `/bin/mkdir -v {$web_root}`;
 $skel = '';
 if ($opts['owner'] == 'root') {
-$skel = "/root/";
+  $skel = "/root/";
 } else {
-$skel = "/home*/".$opts['owner'];
+  $skel = "/home*/".$opts['owner'];
 }
 $user = $opts['user'];
 $files = $skel."/cpanel3-skel/public_html/*";
